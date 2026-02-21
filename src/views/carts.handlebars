@@ -1,0 +1,22 @@
+<main>
+    <section>
+        <h1>Revisa los productos de tus carros</h1>
+        <p></p>
+    </section>
+    <section id="cartSection">
+        <div class="vistaCarro">
+        <h2>Productos:</h2>
+            {{#each cart.products}}
+                <article class="cartCard" >
+                    <div class="cartDetails">
+                        <img src="{{this.product.thumbnail}}" alt="{{this.product.title}}" class="cartImg"/>
+                        <p>{{this.product.title}}</p>
+                        <p>{{this.quantity}}</p>
+                        <button type="button" class="btnDanger" onclick="deleteProductInCartById('{{../cart._id}}', '{{this.product._id}}')">X</button>                        
+                    </div>
+                    <button type="button" class="btnDanger" onclick="deleteCartCollection()">Eliminar Carro</button>
+                </article>
+            {{/each}}
+            </div>
+    </section>
+</main>

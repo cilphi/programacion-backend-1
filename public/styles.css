@@ -1,0 +1,248 @@
+/*Reset CSS*/
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+/*Elementos*/
+h1 {
+    font-family: "Akatab", sans-serif;
+    font-weight: 700;
+    font-style: normal;
+    font-size: 2.027rem;
+    color: #2E2D38;
+}
+h2 {
+    font-family: "Akatab", sans-serif;
+    font-weight: 700;
+    font-style: normal;
+    font-size: 1.807rem;
+    color: #2E2D38;
+}
+h3 {
+    font-family: "Akatab", sans-serif;
+    font-weight: 700;
+    font-style: normal;
+    font-size: 1.602rem;
+    color: #2E2D38;
+}
+h4 {
+    font-family: "Akatab", sans-serif;
+    font-weight: 700;
+    font-style: normal;
+    font-size: 1.424rem 'hgroup';
+    color: #2E2D38;
+}
+h5 {
+    font-family: "Akatab", sans-serif;
+    font-weight: 700;
+    font-style: normal;
+    font-size: 1.266rem;
+    color: #2E2D38;
+}
+h6 {
+    font-family: "Chocolate Classical Sans", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 1.125rem;
+    color: #9B97B5;
+}
+p, a {
+    font-family: "Chocolate Classical Sans", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 1rem;
+    color: #3D3A58;
+}
+a {
+    text-decoration: none;
+}
+li {
+    list-style: none;
+}
+.btnSecondary{
+    padding: 8px 16px;
+    border-radius: 8px;
+    background-color: transparent;
+    border: 2px solid #3D3A58;
+    color: #3D3A58;
+}
+.btnSecondary:hover {
+    cursor: pointer;
+    background-color: #3D3A58;
+    color: #FCFCFE;
+}
+.btnSuccess{
+    padding: 8px 16px;
+    border-radius: 8px;
+    background-color: #37AD72;
+    border: #37AD72;
+    color: #FCFCFE;
+}
+.btnSuccess:hover, .btnDanger:hover {
+    cursor: pointer;
+    background-color: #AD9D37;
+}
+.btnDanger{
+    padding: 8px 4px;
+    border-radius: 8px;
+    background-color: #AD4537;
+    border: #AD4537;
+    color: #FCFCFE;
+}
+/*Header*/
+header {
+    background-color: #ECEBF7;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 16px;
+}
+header nav ul{
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+}
+header nav ul li a:hover{
+    text-decoration: underline;
+}
+.cartQuantity {
+    transform: translate(-50%, -50%);
+    background-color: #37AD72;
+    color: #FCFCFE;
+}
+/*Main*/
+main {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin: 16px;
+    padding: 16px;
+    justify-content: center;
+}
+.vistaProductos {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    gap: 16px;
+    justify-items: center;
+}
+.vistaControles {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    justify-content: center;
+    padding: 16px;
+}
+.vistaControlesBtn {
+    display: flex;
+    flex-direction: row;
+    gap: 100px;
+    justify-content: center;
+}
+.productCard {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    gap: 8px;
+    border: 2px solid #AD6737;
+    padding: 8px;
+    border-radius: 16px;
+    text-align: left;
+    justify-content: flex-start;
+    width: 240px;
+}
+.productCard h4 {
+    height: 50px;
+}
+.productCard p {
+    height: 168px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.productDetails {
+    border-left: 2px solid #AD6737;
+    border-radius: 16px;
+    padding: 8px;
+}
+.productDetails ul{
+    padding: 8px;
+}
+.cardImg {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+.vistaCarro {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+}
+.cartCard {    
+    border-left: 2px solid #AD6737;
+    border-radius: 16px;
+    padding: 8px;
+}
+.cartDetails{
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+}
+.cartImg {
+    width: 106px;
+    height: 106px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+.cardCTA {
+    display: flex;
+    flex-direction: row;
+    gap: 2px;
+    justify-content: center;
+    padding: 8px;
+}
+.formFilled{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+#createProductForm, #updateProductForm {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border: 2px solid #AD6737;
+    border-radius: 16px;
+    padding: 24px;
+}
+input, textarea {
+    padding: 4px;
+    border-radius: 8px;
+    border: 1px solid #4D4C5B;
+    color: #4537AD;
+}
+select{
+    color: #4537AD;
+}
+.crearDestruir {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+}
+.manipularLista {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    padding: 24px;
+    align-content: space-between;
+}
+.manipularLista div {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    height: 136px;
+    justify-content: space-between;
+}

@@ -1,0 +1,105 @@
+<main>
+    <!--Manipular la lista de productos-->
+    <section class="crearDestruir">
+        <h1>Manipular la lista de Productos</h1>
+        <p>Si quieres comenzar desde cero la lista de productos puedes:</p>
+        <div class="manipularLista">
+            <div>
+                <h3>Crear colección de productos</h3>
+                <p>Esto creará la lista de productos. Si has eliminado la colección de productos, esta acción restaurará los productos originales.</p>
+                <button type="button" class="btnSuccess" onclick="createProductsCollection()">Restaurar Lista de Productos</button>
+            </div>
+            <div>
+                <h3>Borrar todos los productos</h3>
+                <p>Esto eliminará todos los productos de la base de datos.</p>
+                <button type="button" class="btnDanger" onclick="deleteProductsCollection()">Borrar Todos los Productos</button>
+            </div>
+        </div>
+    </section>
+    <!--Lista de Productos en tiempo Real-->
+    <section id="productsSection">
+            <h1>Productos Actualizados:</h1>
+            <div class="vistaControles">
+                <select id="categorySelect" onchange="filterByCategory(this.value)">
+                    <option value="">Categorías</option>
+                </select>
+                <select onchange="sortByPrice(this.value)">
+                    <option value="">Ordenar por precio</option>
+                    <option value="asc">Menor a mayor</option>
+                    <option value="desc">Mayor a menor</option>
+                </select>
+            </div>
+            <div class="vistaProductos">
+            {{#each products}}
+                <article class="productCard" >
+                    <h4>{{this.title}}</h4>
+                    <img class="cardImg" src="{{this.thumbnail}}" alt="{{this.title}}">
+                    <p>{{this.description}}</p>
+                    <div class="productDetails">
+                        <ul>
+                            <li>Precio: ${{this.price}}</li>
+                            <li>Categoría: {{this.category}}</li>
+                            <li>Stock: {{this.stock}}</li>
+                        </ul>
+                        <div class="cardCTA">
+                            <button type="button" class="btnSecondary" onclick="getProductById('{{this._id}}')">Ver más</button>
+                            <button type="button" class="btnDanger" onclick="deleteProductById('{{this._id}}')">Eliminar Producto</button>
+                        </div>
+                        <button type="button" class="btnSuccess" onclick="addProductToCart('{{this._id}}')">Agregar al Carrito</button>
+                    </div>
+                </article>
+            {{/each}}
+            </div>
+            <div class="vistaControles">
+                <div class="vistaControlesBtn">
+                    <button type="button" class="btnSecondary" onclick="changePage(-1)">Página Anterior</button>
+                    <button type="button" class="btnSecondary" onclick="changePage(1)">Página Siguiente</button>
+                </div>
+            </div>
+    </section>
+    <!--Agregar y Actualizar producto-->
+    <section class="formFilled">
+        <div>
+            <h1>Agregar producto</h1>
+            <form id="createProductForm">
+                <label for="title">Nombre del producto:</label>
+                <input type="text" id="title" name="title" value="Azul" required/>
+                <label for="description">Descripción:</label>
+                <textarea id="description" name="description" required> Juego de estrategia y diseño de patrones con azulejos coloridos.</textarea>
+                <label for="category">Categoría:</label>
+                <input type="text" id="category" name="category" value="Juegos de mesa" required/>
+                <label for="price">Precio del producto:</label>
+                <input type="number" id="price" name="price" value="42.5" required/>
+                <label for="stock">Stock:</label>
+                <input type="number" id="stock" name="stock" value="10" required/>
+                <label for="status">Estado:</label>
+                <select id="status" name="status">
+                    <option value="true">Activo</option>
+                    <option value="false">Inactivo</option>
+                </select>
+                <label for="code">SKU:</label>
+                <input type="text" id="code" name="code" value="SKU-AZUL" required/>
+                <label for="thumbnail">Imagen:</label>
+                <input type="text" id="thumbnail" name="thumbnail" value="https://cf.geekdo-images.com/aPSHJO0d0XOpQR5X-wJonw__imagepage/img/q4uWd2nXGeEkKDR8Cc3NhXG9PEU=/fit-in/900x600/filters:no_upscale():strip_icc()/pic6973671.png" required/>
+                <button type="button" class="btnSuccess" onclick="addProduct()">Crear Producto</button>
+            </form>
+        </div>
+        <div>
+            <h1>Actualizar producto</h1>
+            <form id="updateProductForm">
+                <label for="productCode">Escribe el SKU del Producto</label>
+                <input type="text" id="productCode" name="productCode" value="SKU-TTR" required/>
+                <label for="stock">Stock:</label>
+                <input type="number" id="stock" name="stock" value="10" required/>
+                <label for="status">Estado:</label>
+                <select id="status" name="status">
+                    <option value="true">Activo</option>
+                    <option value="false">Inactivo</option>
+                </select>
+                <button type="button" class="btnSuccess" onclick="updateProduct()">Actualizar Producto</button>
+            </form>
+        </div>
+    </section>
+</main>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/script.js"></script>
