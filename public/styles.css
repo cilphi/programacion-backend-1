@@ -84,7 +84,7 @@ li {
     background-color: #AD9D37;
 }
 .btnDanger{
-    padding: 8px 4px;
+    padding:4px 8px ;
     border-radius: 8px;
     background-color: #AD4537;
     border: #AD4537;
@@ -178,18 +178,27 @@ main {
 .vistaCarro {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 24px;
+    padding: 24px;
 
 }
-.cartCard {    
+.cartCard {
     border-left: 2px solid #AD6737;
+    border-right: 2px solid #AD6737;
     border-radius: 16px;
     padding: 8px;
+    margin: 8px;
+
 }
-.cartDetails{
+.cartDetails{    
     display: flex;
     flex-direction: row;
-    gap: 4px;
+    gap: 24px;
+    align-items: center;
+    justify-content: space-evenly;
+}
+.cartDetails p {
+    width: 200px;
 }
 .cartImg {
     width: 106px;
