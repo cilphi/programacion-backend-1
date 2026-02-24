@@ -1,7 +1,15 @@
 const socket = io();
+const path = window.location.pathname;
 
-// Función para renderizar Lista de Productos
+/* Productos */
+//Paginación, Filtros y Sort
+let currentPage = 1;
+let currentCategory = "";
+let currentSort = "";
+
+//Función para renderizar Lista de Productos
 function renderProducts(products) {
+    if (!Array.isArray(products)) return
     const container = document.querySelector('#productsSection .vistaProductos');
     if (!container) return;
     if (products.length === 0) {
@@ -32,41 +40,38 @@ function renderProducts(products) {
             </div>
         </article>
     `).join('');
-}
+};
 
-//Paginación
-let currentPage = 1;
-let currentCategory = "";
-let currentSort = "";
+//Cargar Productos
 async function loadProducts() {
     try {
         let url = `/api/products?page=${currentPage}`;
-        if (currentCategory) {
-            url += `&category=${currentCategory}`;
-        }
-        if (currentSort) {
-            url += `&sort=${currentSort}`;
-        }
+        if (currentCategory) url += `&category=${currentCategory}`;
+        if (currentSort) url += `&sort=${currentSort}`;
         const resp = await fetch(url);
         const data = await resp.json();
-        renderProducts(data.products);
+        renderProducts(data.docs || data.products);
     } catch (error) {
         console.error("Error cargando productos:", error);
     }
 };
-async function changePage(direction) {
-    const nextPage = currentPage + direction;
-    if (nextPage < 1) return;
-    currentPage = nextPage;
-    await loadProducts();
+
+//Cargar categorías
+async function loadCategories() {
+    try {
+        const res = await fetch('/api/products/categories');
+        const data = await res.json();
+        renderCategories(data);
+    } catch (error) {
+        console.error('Error cargando categorías:', error);
+    }
 };
 
-// Función para renderizar categorías en el select
+//Función para renderizar categorías en el select
 function renderCategories(categories) {
-
+    if (!Array.isArray(categories)) return;
     const select = document.getElementById('categorySelect');
     if (!select) return;
-
     select.innerHTML = `
         <option value="">Todas</option>
         ${categories.map(cat => 
@@ -75,18 +80,29 @@ function renderCategories(categories) {
     `;
 };
 
+//Filtrar por categoría
 function filterByCategory(category) {
     currentCategory = category;
     currentPage = 1; 
     loadProducts();
 };
 
+//Función para ordenar por precio
 function sortByPrice(order) {
     currentSort = order;
     currentPage = 1;
     loadProducts();
 };
 
+//Cambiar página
+async function changePage(direction) {
+    const nextPage = currentPage + direction;
+    if (nextPage < 1) return;
+    currentPage = nextPage;
+    await loadProducts();
+};
+
+/* CRUD Productos */
 // Agregar producto
 async function addProduct() {
     const form = document.getElementById("createProductForm");
@@ -100,61 +116,35 @@ async function addProduct() {
         code: form.code.value,
         thumbnail: form.thumbnail.value
     };
-    try {
-        const resp = await fetch("/api/products", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(product)
-        });
-        const data = await resp.json();
-        if (!data.ok) alert('No se pudo agregar el producto');
-        alert("Producto agregado correctamente");
-    } catch (error) {
-        console.error("Error al agregar producto:", error);
-    }
+    const resp = await fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(product)
+    });
+    const data = await resp.json();
+    if (!data.ok) alert('No se pudo agregar el producto');
+    alert("Producto agregado correctamente");
+    await loadProducts();
 };
 
 // Actualizar producto
 async function updateProduct() {
     const form = document.getElementById('updateProductForm');
+    if (!form) return;
     const code = form.productCode.value;
-    const updatedFields = {
-        stock: Number(form.stock.value),
-        status: form.status.value === 'true'
-    };
-    try {
-        const resp = await fetch(`/api/products/code/${code}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updatedFields)
-        });
-        const data = await resp.json();
-        if (!data.ok) alert('No se pudo actualizar el producto');
-    } catch (error) {
-        console.error('Error al actualizar producto:', error);
-    }
-}
-
-//Revisar si existe un carro
-let currentCartId = null;
-document.addEventListener('DOMContentLoaded', async () => {await loadProducts();
-    const respCategories = await fetch('/api/products/categories');
-    renderCategories(await respCategories.json());
-    const cartResp = await fetch('/api/carts', { method: 'POST' });
-    const cartData = await cartResp.json();
-    currentCartId = cartData._id;
-});
-
-//Agregar producto al carro por id
-async function addProductToCart(pid) {
-    const qtyInput = document.getElementById(`qty-${pid}`);
-    const quantity = Number(qtyInput.value);
-    const resp = await fetch(`/api/carts/${currentCartId}/products/${pid}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ quantity })
+    const resp = await fetch(`/api/products/code/${code}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            stock: Number(form.stock.value),
+            status: form.status.value === 'true'
+        })
     });
-};
+    const data = await resp.json();
+    if (!data.ok) alert('No se pudo actualizar el producto');
+    alert("Producto actualizado correctamente");
+    await loadProducts();
+}
 
 //Borrar producto por id
 async function deleteProductById(pid) {
@@ -163,7 +153,52 @@ async function deleteProductById(pid) {
     });
     const data = await resp.json();
     if (!data.ok) {
-        alert("Error al eliminar");
+        alert("Error al eliminar"); return;
+    } await loadProducts();
+};
+
+window.deleteProductsCollection = async () => {
+    try {
+        const resp = await fetch('/api/products/all', { method: 'DELETE' });
+        const data = await resp.json();
+        if (!data.ok) {
+            alert('Error al eliminar todos los productos.');
+            return;
+        }
+        alert('Todos los productos han sido eliminados.');
+        await loadProducts();
+    } catch (error) {
+        console.error('Error al eliminar todos los productos:', error);
+    }
+};
+
+window.createProductsCollection = async () => {
+    try {
+        const resp = await fetch('/api/products/reset', { method: 'POST' });
+        const data = await resp.json();
+        if (!data.ok) {
+            alert('No se pudieron restaurar los productos.');
+            return;
+        }
+        alert('Productos restaurados.');
+        await loadProducts();
+    } catch (error) {
+        console.error('Error al restaurar productos:', error);
+    }
+};
+
+/* Carro de Compras */
+//Revisar si existe un carro
+let currentCartId = sessionStorage.getItem('cartId');
+
+//Crear carro
+async function createCart() {
+    const res = await fetch('/api/carts', { method: 'POST' });
+    const data = await res.json();
+    if (data._id) {
+        sessionStorage.setItem("cartId", data._id);
+        currentCartId = data._id;
+        console.log("Nuevo carrito creado:", data._id);
     }
 };
 
@@ -171,9 +206,9 @@ async function deleteProductById(pid) {
 function renderCart(cart) {
     const container = document.querySelector('#cartSection .vistaCarro');
     if (!container) return;
-    if (!cart || cart.products.length === 0) {
+    if (!cart || !cart.products || cart.products.length === 0) {
         container.innerHTML =
-        `<div class="cartDetails">
+        `<div class="productDetails">
             <h4>El carrito de compras está vacío</h4>
             <p>Agrega productos al carrito para verlos aquí</p>
         </div>`;
@@ -187,63 +222,68 @@ function renderCart(cart) {
                         <p>${item.quantity}</p>
                         <button type="button" class="btnDanger" onclick="deleteProductInCartById('${cart._id}', '${item.product._id}')">X</button>                        
                     </div>
-                    <button type="button" class="btnDanger" onclick="deleteCartCollection()">Eliminar Carro</button>
                 </article>`
     ).join('');
 }
 
+//Función para cargar el carro a la vista
+async function loadCart() {
+    if (!currentCartId) return;
+    const response = await fetch(`/api/carts/${currentCartId}`);
+    const data = await response.json();
+    if (!data || !data.carts || data.carts.length === 0) {
+        renderCart(null);
+        return;
+    }
+    renderCart(data.carts[0]);
+};
+
+//Agregar producto al carro por id
+async function addProductToCart(pid) {
+    if (!currentCartId) { await createCart(); }
+    const qtyInput = document.getElementById(`qty-${pid}`);
+    const quantity = Number(qtyInput.value);
+    const resp = await fetch(`/api/carts/${currentCartId}/products/${pid}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ quantity })
+    });
+    const data = await resp.json();
+    if (!data.ok) {alert(data.msg); return;}
+    await loadCart();
+};
+
 //Borrar producto del carro por id
 async function deleteProductInCartById(cid, pid) {
-    try {
-        const resp = await fetch(`/api/carts/${cid}/products/${pid}`, {
-            method: 'DELETE'
-        });
-        const data = await resp.json();
-        if (!data.ok) {
-            alert('No se pudo eliminar el producto');
-        }
-    } catch (error) {
-        console.error('Error al eliminar producto:', error);
-    }
-}
+    await fetch(`/api/carts/${cid}/products/${pid}`, {
+        method: 'DELETE'
+    });
+};
 
-// Funciones llamadas desde los botones
+//Borrar los datos de la colección Carts
 window.deleteCartCollection = async () => {
-    try {
-        const resp = await fetch('/api/carts/all', { method: 'DELETE' });
-        const data = await resp.json();
-        if (data.ok) {
-            alert('El carro de compras fue eliminado.');
-        }
-    } catch (error) {
-        console.error('Error al eliminar el carro de compras:', error);
+    const resp = await fetch('/api/carts/all', { method: 'DELETE' });
+    const data = await resp.json();
+    if (data.ok) {
+        sessionStorage.clear();
+        currentCartId = null;
+        alert('El carro de compras fue eliminado.');
     }
 };
 
-
-window.deleteProductsCollection = async () => {
-    try {
-        const resp = await fetch('/api/products/all', { method: 'DELETE' });
-        const data = await resp.json();
-        if (data.ok) {
-            alert('Todos los productos fueron eliminados.');
-        }
-    } catch (error) {
-        console.error('Error al eliminar todos los productos:', error);
+/* Inicialización */
+document.addEventListener('DOMContentLoaded', async () => {
+    if (!currentCartId) {
+        await createCart();
     }
-};
-
-window.createProductsCollection = async () => {
-    try {
-        const resp = await fetch('/api/products/reset', { method: 'POST' });
-        const data = await resp.json();
-        if (data.ok) {
-            alert('Productos restaurados.');
-        }
-    } catch (error) {
-        console.error('Error al restaurar productos:', error);
+    if (path.startsWith('/products')) {
+        await loadProducts();
+        await loadCategories();
     }
-};
+    if (path.startsWith('/carts')) {
+        await loadCart();
+    }
+});
 
 // Socket emits en tiempo real
 socket.on('connect', () => {
@@ -251,9 +291,11 @@ socket.on('connect', () => {
 });
 
 socket.on('productsUpdated', (products) => {
+    if (path !== '/products') return;
     renderProducts(products);
 });
 
-socket.on('cartsUpdated', (carts) => {
-    renderCart(carts);
+socket.on('cartsUpdated', (cart) => {
+    if (path !== '/carts') return;
+        renderCart(cart);
 });
