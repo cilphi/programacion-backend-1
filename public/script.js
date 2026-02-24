@@ -193,9 +193,14 @@ window.createProductsCollection = async () => {
 
 //Crear carro
 async function createCart() {
-    const res = await fetch('/api/carts', { method: 'POST' });
-    const data = await res.json();
-    sessionStorage.setItem('cartId', data.cart._id);
+    const resp = await fetch('/api/carts', { method: 'POST' });
+    const data = await resp.json();
+    console.log("Respuesta createCart:", data);
+    if (!data.ok || !data._id) {
+        console.error("Error creando carrito");
+        return;
+    }
+    sessionStorage.setItem('cartId', data._id);
 };
 
 //Función renderizar Carrito de compras
@@ -215,7 +220,7 @@ function renderCart(cart) {
                     <div class="cartDetails">
                         <img src="${item.product.thumbnail}" alt="${item.product.title}" class="cartImg"/>
                         <p>${item.product.title}</p>
-                        <p>${item.quantity}</p>
+                        <p>${item.quantity} unidad(es)</p>
                         <button type="button" class="btnDanger" onclick="deleteProductInCartById('${cart._id}', '${item.product._id}')">X</button>                        
                     </div>
                 </article>`
@@ -228,15 +233,16 @@ async function loadCart() {
     if (!currentCartId) return;
     const response = await fetch(`/api/carts/${currentCartId}`);
     const data = await response.json();
-    if (!data || !data.cart || data.cart.length === 0) {
+    if (!data || !data.cart) {
         renderCart(null);
         return;
     }
-    renderCart(data.cart[0]);
+    renderCart(data.cart);
 };
 
 //Agregar producto al carro por id
 async function addProductToCart(pid) {
+
     const currentCartId = sessionStorage.getItem('cartId');
     if (!currentCartId) { await createCart(); }
     const qtyInput = document.getElementById(`qty-${pid}`);
@@ -247,27 +253,32 @@ async function addProductToCart(pid) {
         body: JSON.stringify({ quantity })
     });
     const data = await resp.json();
-    if (!data.ok) {alert(data.msg); return;}
+    if (data.ok) { await loadCart(); alert(data.msg || "Producto agregado correctamente");
+    }
     await loadCart();
 };
 
 //Borrar producto del carro por id
 async function deleteProductInCartById(cid, pid) {
-    await fetch(`/api/carts/${cid}/products/${pid}`, {
-        method: 'DELETE'
-    });
+    const resp = await fetch(`/api/carts/${cid}/products/${pid}`, { method: 'DELETE' });
+    const data = await resp.json();
+    if (!data.ok) { alert(data.msg || "Error eliminando producto"); return;
+    }
+    alert(data.msg || "Producto eliminado correctamente");
+    await loadCart();
 };
 
 //Borrar los datos de la colección Carts
 window.deleteCartCollection = async () => {
-    const resp = await fetch('/api/carts/all', { method: 'DELETE' });
+    const currentCartId = sessionStorage.getItem('cartId');
+    if (!currentCartId) return;
+    const resp = await fetch(`/api/carts/${currentCartId}/finalize`, { method: 'POST' });
     const data = await resp.json();
-    if (data.ok) {
-        sessionStorage.clear();
-        const currentCartId = sessionStorage.getItem('cartId');
-        currentCartId = null;
-        alert('El carro de compras fue eliminado.');
-    }
+    if (!data.ok) { alert(data.message); return; }
+    sessionStorage.removeItem('cartId');
+    await createCart();
+    await loadCart();
+    alert('Orden creada correctamente.');
 };
 
 /* Inicialización */
