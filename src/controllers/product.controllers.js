@@ -273,7 +273,7 @@ export const createProductsCollection = async (req, res) => {
     ];
     await productsModel.insertMany(newProductList);
         const products = await productsModel.find().lean();
-        io.emit('productsUpdated', products);
+        req.io.emit('productsUpdated', products);
         return res.json({ ok: true, message: 'La colección Products ha sido creada', products: newProductList });
     } catch (error) {
         console.error('Error en el endpoint reset:', error);
@@ -289,7 +289,7 @@ export const addProduct = async (req, res) => {
             return res.status(400).json({ ok: false, msg: 'Faltan datos obligatorios' });
         }
         const newProduct = await productsModel.create(body);
-        io.emit('productsUpdated', newProduct);
+        req.io.emit('productsUpdated', newProduct);
         res.json({ ok: true, msg: 'Producto agregado', product: newProduct });
     } catch (error) {
         res.status(500).json({ ok: false });
@@ -306,7 +306,7 @@ export const updateProduct = async (req, res) => {
         return res.status(404).json({ returnDocument: 'after', msg: 'Producto no encontrado' });
     }
     const products = await productsModel.find();
-    io.emit('productsUpdated', products);
+    req.io.emit('productsUpdated', products);
     res.json({ ok: true, msg: 'Producto actualizado', product: updatedProduct});
     } catch (error) {
         res.status(500).json({msg: 'Error al actualizar el producto'});
@@ -318,7 +318,7 @@ export const deleteProductsCollection = async (req, res) => {
     try {
         const result = await productsModel.deleteMany({});
         const products = await productsModel.find();
-        io.emit('productsUpdated', products);
+        req.io.emit('productsUpdated', products);
         return res.json({ ok: true, message: 'La colección Products ha sido eliminada', deletedCount: result.deletedCount });
     } catch (error) {
         return res.status(500).json({ ok: false, message: 'Error borrando la colección' });
@@ -333,9 +333,10 @@ export const deleteProductById = async (req, res) => {
             return res.status(404).json({ ok: false, msg: "Producto no encontrado" });
         }
         const products = await productsModel.find();
-        io.emit('productsUpdated', products);
+        req.io.emit('productsUpdated', products);
         res.json({ ok: true, msg: "Producto eliminado correctamente" });
     } catch (error) {
-        res.status(500).json({ ok: false, msg: "Error al eliminar producto" });
+        console.error('Error al eliminar el producto: ', error);
+        res.status(500).json({ ok: false, error: error.message });
     }
 };

@@ -1,12 +1,14 @@
 import cartsModel from '../models/carts.model.js';
 import productsModel from '../models/products.model.js';
-import { io } from '../../app.js';
+import ordersModel from '../models/orders.model.js';
+import mongoose from 'mongoose';
+import {  io } from '../../app.js';
 
 //GET Carrito
-export const getCarts = async (__, res) => {
+export const getCarts = async (req, res) => {
     try {
         const carts = await cartsModel.find().populate('products.product');
-        res.render('carts', {title: 'Carrito de compras', carts: carts});
+        res.json({msg: 'Carro:', carts});
     } catch (error) {
         res.status(500).json({msg: 'Error al obtener los carritos'});
     }
@@ -30,7 +32,7 @@ export const createCart = async (req, res) => {
     try {
         const newCart = await cartsModel.create({ products: [] });
         const updatedCart = await cartsModel.findById(newCart._id).populate('products.product').lean();
-        io.emit('cartsUpdated', updatedCart);
+        req.io.emit('cartsUpdated', updatedCart);
         res.json({ ok: true, _id: newCart._id });
     } catch (error) {
         res.status(500).json({ msg: "Error al crear carrito" });
@@ -72,7 +74,7 @@ export const addProductInCartById = async (req,res)=>{
         product.stock -= qty;
         await product.save();
         const updatedCart = await cartsModel.findById(cid).populate('products.product').lean();
-        io.emit('cartsUpdated', updatedCart);
+        req.io.emit('cartsUpdated', updatedCart);
         res.json({ ok: true });
     } catch (error) {
         res.status(500).json({ msg: "Error agregando producto al carrito" });
@@ -102,7 +104,7 @@ export const updateCartById = async (req, res) => {
             return res.status(404).json({ ok: false });
         }
         const updatedCart = await cartsModel.findById(cid).populate('products.product').lean();
-        io.emit('cartsUpdated', updatedCart);
+        req.io.emit('cartsUpdated', updatedCart);
         res.json({ ok: true, cart: cartUpdated });
     } catch (error) {
         res.status(500).json({msg: 'Error al actualizar el carrito'});
@@ -112,12 +114,20 @@ export const updateCartById = async (req, res) => {
 //DELETE Borrar la colección y sus datos
 export const deleteCartCollection = async (req, res) => {
     try {
+        const carts = await cartsModel.find();
+        if (carts.length > 0) {
+            const newOrder = carts.map(cart => ({
+                cartId: cart._id,
+                products: cart.products
+            }));
+            await ordersModel.insertMany(newOrder);
+        }
         await cartsModel.deleteMany({});
-        io.emit('cartsUpdated', null);
-        return res.json({ ok: true, message: 'carts.json deleted if it existed' });
+        req.io.emit('cartsUpdated', null);
+        return res.json({ ok: true, message: 'se borró el carro' });
     } catch (error) {
-        console.error('Error in delete-all endpoint:', error);
-        return res.status(500).json({ ok: false, message: 'Error deleting carts.json' });
+        console.error(error);
+        return res.status(500).json({ ok: false, message: 'Error borrando el carro' });
     }
 };
 
@@ -132,7 +142,7 @@ export const deleteProductInCartById = async (req, res) => {
         cart.products = cart.products.filter( p => p.product.toString() !== pid );
         await cart.save();
         const updatedCart = await cartsModel.findById(cid).populate('products.product').lean();
-        io.emit('cartsUpdated', updatedCart);
+        req.io.emit('cartsUpdated', updatedCart);
         res.json({ ok: true });
         } catch (error) {
             res.status(500).json({ ok: false });
