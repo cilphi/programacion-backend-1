@@ -12,14 +12,14 @@ router.get('/:cid', getCartById);
 //POST Crear carrito
 router.post('/', createCart);
 
+//POST Finalizar el carro y generar la orden
+router.post('/:cid/finalize', deleteCartCollection);
+
 //POST Agregar producto al carrito por ID
 router.post("/:cid/products/:pid",addProductInCartById);
 
 //PUT Actualizar un producto del carrito por su ID
 router.put('/:cid/products/:pid', updateCartById);
-
-//DELETE Borrar la colección y sus datos
-router.delete('/all', deleteCartCollection);
 
 //DELETE Borrar un producto del carrito por su ID
 router.delete('/:cid/products/:pid', deleteProductInCartById);
