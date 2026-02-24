@@ -42,9 +42,10 @@
                             <li>Stock: {{this.stock}}</li>
                         </ul>
                         <div class="cardCTA">
-                            <button type="button" class="btnSecondary" onclick="getProductById('{{this._id}}')">Ver más</button>
+                            <a href="/products/{{this._id}}" class="btnSecondary">Ver más</a>
                             <button type="button" class="btnDanger" onclick="deleteProductById('{{this._id}}')">Eliminar Producto</button>
                         </div>
+                        <input type="number" min="1" max="{{this.stock}}" value="1" id="qty-{{this._id}}">
                         <button type="button" class="btnSuccess" onclick="addProductToCart('{{this._id}}')">Agregar al Carrito</button>
                     </div>
                 </article>
