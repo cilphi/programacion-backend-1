@@ -35,6 +35,11 @@ const environment = async () => {
 }
 environment();
 
+app.use((req, res, next) => {
+    req.io = io;
+    next();
+});
+
 /*Rutas */
 app.use('/', viewsRouter);
 app.use('/api/products', productsRouter);
