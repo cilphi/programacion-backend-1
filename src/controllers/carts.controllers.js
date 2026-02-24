@@ -16,15 +16,11 @@ export const getCarts = async (req, res) => {
 
 //GET Carrito por ID
 export const getCartById = async (req, res) => {
-    try {
     const {cid} = req.params;
     const cart = await cartsModel.findById(cid).populate('products.product').lean();
     if (!cart) {
         return res.status(404).json({msg: 'Carrito no encontrado'});
-    } return res.json({ok:true, cart});
-    } catch (error) {
-        res.status(500).json({ok:false, msg: 'Error al obtener el carrito'});
-    }
+    } return res.json({cart});
 };
 
 //POST Crear carrito
@@ -75,7 +71,7 @@ export const addProductInCartById = async (req,res)=>{
         await product.save();
         const updatedCart = await cartsModel.findById(cid).populate('products.product').lean();
         req.io.emit('cartsUpdated', updatedCart);
-        res.json({ ok: true });
+        return res.json({ ok: true, msg: "Producto agregado al carrito" });
     } catch (error) {
         res.status(500).json({ msg: "Error agregando producto al carrito" });
     }
@@ -111,24 +107,24 @@ export const updateCartById = async (req, res) => {
     }
 };
 
-//DELETE Borrar la colección y sus datos
+//DELETE    Ahora: Borra el id del carro de la sesión en curso.
+//          Antes: Borraba la colección y sus datos
+//          Para no tener que cambiar todo, se conservó el nombre
 export const deleteCartCollection = async (req, res) => {
-    try {
-        const carts = await cartsModel.find();
-        if (carts.length > 0) {
-            const newOrder = carts.map(cart => ({
-                cartId: cart._id,
-                products: cart.products
-            }));
-            await ordersModel.insertMany(newOrder);
-        }
-        await cartsModel.deleteMany({});
-        req.io.emit('cartsUpdated', null);
-        return res.json({ ok: true, message: 'se borró el carro' });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ ok: false, message: 'Error borrando el carro' });
+    const { cid } = req.params;
+    const cart = await cartsModel.findById(cid);
+    if (!cart) {
+        return res.status(404).json({ ok: false, message: 'Carro no encontrado' });
     }
+    if (!cart.products.length) {
+        return res.json({ ok: false, message: 'El carro está vacío' });
+    }
+    // Crear orden
+    await ordersModel.create({ creationDate: new Date(), cartId: cart._id, products: cart.products });
+    // Borrar solo ese carrito
+    await cartsModel.findByIdAndDelete(cid, { $set: { products: []}});
+    req.io.emit('cartsUpdated', null);
+    return res.json({ ok: true, message: 'Orden creada y carrito eliminado' });
 };
 
 //DELETE Borrar un producto del carrito por su ID
@@ -143,7 +139,7 @@ export const deleteProductInCartById = async (req, res) => {
         await cart.save();
         const updatedCart = await cartsModel.findById(cid).populate('products.product').lean();
         req.io.emit('cartsUpdated', updatedCart);
-        res.json({ ok: true });
+        res.json({ ok: true, msg: "Producto eliminado correctamente del carro" });
         } catch (error) {
             res.status(500).json({ ok: false });
     }
