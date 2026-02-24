@@ -246,3 +246,27 @@ select{
     height: 136px;
     justify-content: space-between;
 }
+/* Product Details*/
+.vistaDetailProducts{
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 16px;
+    justify-content: center;
+}
+.vistaDetailProducts img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+}
+.detailProduct{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.detailCTA {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    justify-content: center;
+}
