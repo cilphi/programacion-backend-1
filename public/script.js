@@ -32,7 +32,7 @@ function renderProducts(products) {
                     <li>Stock: ${product.stock}</li>
                 </ul>
                 <div class="cardCTA">
-                    <button type="button" class="btnSecondary" onclick="getProductById('${product._id}')">Ver más</button>
+                    <a href="/products/${product._id}" class="btnSecondary">Ver más</a>
                     <button type="button" class="btnDanger" onclick="deleteProductById('${product._id}')">Eliminar Producto</button>
                 </div>
                 <input type="number" min="1" max="${product.stock}" value="1" id="qty-${product._id}">
@@ -189,17 +189,13 @@ window.createProductsCollection = async () => {
 
 /* Carro de Compras */
 //Revisar si existe un carro
-let currentCartId = sessionStorage.getItem('cartId');
+//let currentCartId = sessionStorage.getItem('cartId');
 
 //Crear carro
 async function createCart() {
     const res = await fetch('/api/carts', { method: 'POST' });
     const data = await res.json();
-    if (data._id) {
-        sessionStorage.setItem("cartId", data._id);
-        currentCartId = data._id;
-        console.log("Nuevo carrito creado:", data._id);
-    }
+    sessionStorage.setItem('cartId', data.cart._id);
 };
 
 //Función renderizar Carrito de compras
@@ -228,18 +224,20 @@ function renderCart(cart) {
 
 //Función para cargar el carro a la vista
 async function loadCart() {
+    const currentCartId = sessionStorage.getItem('cartId');
     if (!currentCartId) return;
     const response = await fetch(`/api/carts/${currentCartId}`);
     const data = await response.json();
-    if (!data || !data.carts || data.carts.length === 0) {
+    if (!data || !data.cart || data.cart.length === 0) {
         renderCart(null);
         return;
     }
-    renderCart(data.carts[0]);
+    renderCart(data.cart[0]);
 };
 
 //Agregar producto al carro por id
 async function addProductToCart(pid) {
+    const currentCartId = sessionStorage.getItem('cartId');
     if (!currentCartId) { await createCart(); }
     const qtyInput = document.getElementById(`qty-${pid}`);
     const quantity = Number(qtyInput.value);
@@ -266,6 +264,7 @@ window.deleteCartCollection = async () => {
     const data = await resp.json();
     if (data.ok) {
         sessionStorage.clear();
+        const currentCartId = sessionStorage.getItem('cartId');
         currentCartId = null;
         alert('El carro de compras fue eliminado.');
     }
@@ -273,6 +272,7 @@ window.deleteCartCollection = async () => {
 
 /* Inicialización */
 document.addEventListener('DOMContentLoaded', async () => {
+    const currentCartId = sessionStorage.getItem('cartId');
     if (!currentCartId) {
         await createCart();
     }
